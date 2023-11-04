@@ -1,0 +1,41 @@
+globals:
+  - id: soap_remaining
+    type: float
+    restore_value: no
+    initial_value: '4390'  # Initial value is 4000 ml (4 liters)
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO13
+      mode: INPUT_PULLUP
+    id: button
+    on_press:
+      then:
+        - switch.turn_on: motor
+        - delay: 35s  # Edit this
+        - switch.turn_off: motor
+        - lambda: |-  # Subtract 25 ml each time the button is pressed
+            id(soap_remaining) -= 25;
+switch:
+  - platform: gpio
+    pin: GPIO4
+    id: motor
+
+sensor:
+  - platform: template
+    name: "Soap Remaining"
+    unit_of_measurement: "ml"
+    lambda: |-
+      return id(soap_remaining);
+    on_value:
+      then:
+        - lambda: |-
+            if (id(soap_remaining) < 0) {
+              id(soap_remaining) = 0;
+            }
+
+
+captive_portal:
+
+    
